@@ -179,46 +179,46 @@ export default function Portfolio() {
   ]);
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-[1440px] mx-auto px-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Total Value Card */}
-        <div className="bg-gray-800 rounded-lg p-6">
-          <div className="text-sm text-gray-400 mb-2">Total Portfolio Value</div>
-          <div className="text-3xl font-bold text-green-500">
+        <div className="bg-[#1a2332] rounded border border-[#2a3547] p-6 shadow-sm">
+          <div className="text-sm text-gray-400 mb-2 font-sans">Total Portfolio Value</div>
+          <div className="text-3xl font-bold font-serif" style={{ color: '#00C853' }}>
             ${totalValue.toFixed(2)}
           </div>
         </div>
 
         {/* Cash Balance Card */}
-        <div className="bg-gray-800 rounded-lg p-6">
-          <div className="text-sm text-gray-400 mb-2">Cash Balance</div>
-          <div className="text-3xl font-bold">
+        <div className="bg-[#1a2332] rounded border border-[#2a3547] p-6 shadow-sm">
+          <div className="text-sm text-gray-400 mb-2 font-sans">Cash Balance</div>
+          <div className="text-3xl font-bold font-serif text-gray-100">
             ${portfolio.balance.toFixed(2)}
           </div>
         </div>
 
         {/* Crypto Value Card */}
-        <div className="bg-gray-800 rounded-lg p-6">
-          <div className="text-sm text-gray-400 mb-2">Crypto Holdings Value</div>
-          <div className="text-3xl font-bold text-blue-500">
+        <div className="bg-[#1a2332] rounded border border-[#2a3547] p-6 shadow-sm">
+          <div className="text-sm text-gray-400 mb-2 font-sans">Crypto Holdings Value</div>
+          <div className="text-3xl font-bold font-serif" style={{ color: '#d4af37' }}>
             ${totalCryptoValue.toFixed(2)}
           </div>
         </div>
       </div>
 
       {/* Holdings Table */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-xl font-bold mb-4">Your Holdings</h2>
+      <div className="bg-[#1a2332] rounded border border-[#2a3547] p-6 shadow-sm">
+        <h2 className="text-2xl font-bold mb-6 font-serif">Your Holdings</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-700">
-                <th className="text-left py-3 px-4">Asset</th>
-                <th className="text-right py-3 px-4">Amount</th>
-                <th className="text-right py-3 px-4">Price</th>
-                <th className="text-right py-3 px-4">Value</th>
-                <th className="text-right py-3 px-4">Status</th>
-                <th className="text-right py-3 px-4">Action</th>
+              <tr className="border-b border-[#2a3547]">
+                <th className="text-left py-4 px-4 font-sans text-sm text-gray-400 font-normal">Asset</th>
+                <th className="text-right py-4 px-4 font-sans text-sm text-gray-400 font-normal">Amount</th>
+                <th className="text-right py-4 px-4 font-sans text-sm text-gray-400 font-normal">Price</th>
+                <th className="text-right py-4 px-4 font-sans text-sm text-gray-400 font-normal">Value</th>
+                <th className="text-right py-4 px-4 font-sans text-sm text-gray-400 font-normal">Status</th>
+                <th className="text-right py-4 px-4 font-sans text-sm text-gray-400 font-normal">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -233,42 +233,42 @@ export default function Portfolio() {
                 if (regularAmount === 0 && !stakedData && !unstakingData) return null;
 
                 return (
-                  <tr key={symbol} className="border-b border-gray-700 hover:bg-gray-750">
-                    <td className="py-4 px-4">
-                      <div className="font-bold">{symbol}</div>
-                      <div className="text-sm text-gray-400">{cryptoNames[symbol]}</div>
+                  <tr key={symbol} className="border-b border-[#2a3547] hover:bg-[#0f1419] transition-colors">
+                    <td className="py-5 px-4">
+                      <div className="font-bold font-sans text-gray-100">{symbol}</div>
+                      <div className="text-sm text-gray-400 font-sans">{cryptoNames[symbol]}</div>
                     </td>
-                    <td className="text-right py-4 px-4 font-mono">
+                    <td className="text-right py-5 px-4 font-mono text-sm">
                       <div>
                         {regularAmount > 0 && (
-                          <div>{regularAmount.toFixed(8)}</div>
+                          <div className="text-gray-100">{regularAmount.toFixed(8)}</div>
                         )}
                         {stakedData && (
-                          <div className="text-purple-400">
-                            {stakedData.amount.toFixed(8)} <span className="text-xs">STAKED</span>
+                          <div style={{ color: '#d4af37' }}>
+                            {stakedData.amount.toFixed(8)} <span className="text-xs font-sans">STAKED</span>
                           </div>
                         )}
                         {unstakingData && (
-                          <div className="text-yellow-400">
-                            {unstakingData.amount.toFixed(8)} <span className="text-xs">UNSTAKING</span>
+                          <div style={{ color: '#F9A825' }}>
+                            {unstakingData.amount.toFixed(8)} <span className="text-xs font-sans">UNSTAKING</span>
                           </div>
                         )}
                       </div>
                     </td>
-                    <td className="text-right py-4 px-4 font-mono">
+                    <td className="text-right py-5 px-4 font-mono text-sm text-gray-300">
                       ${price.toFixed(2)}
                     </td>
-                    <td className="text-right py-4 px-4 font-mono font-bold">
+                    <td className="text-right py-5 px-4 font-mono text-base font-bold text-gray-100">
                       ${((regularAmount + (stakedData?.amount || 0) + (unstakingData?.amount || 0)) * price).toFixed(2)}
                     </td>
-                    <td className="text-right py-4 px-4 text-sm">
+                    <td className="text-right py-5 px-4 text-sm font-sans">
                       {stakedData && info && (
-                        <div className="text-purple-400">
+                        <div style={{ color: '#d4af37' }}>
                           Earning {info.apy}% APY
                         </div>
                       )}
                       {unstakingData && info && (
-                        <div className="text-yellow-400">
+                        <div style={{ color: '#F9A825' }}>
                           Unlocks in: {formatTimeRemaining(unstakingData.unstakeCompleteAt)}
                         </div>
                       )}
@@ -276,22 +276,24 @@ export default function Portfolio() {
                         <div className="text-gray-500">Available</div>
                       )}
                     </td>
-                    <td className="text-right py-4 px-4">
+                    <td className="text-right py-5 px-4">
                       {stakedData ? (
                         <button
                           onClick={() => handleUnstake(symbol)}
-                          className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded text-sm"
+                          className="font-sans text-sm px-4 py-2 border-2 text-gray-100 hover:bg-[#2a3547] transition-colors"
+                          style={{ borderColor: '#F9A825', backgroundColor: 'transparent' }}
                         >
                           Unstake
                         </button>
                       ) : unstakingData ? (
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-400 font-sans">
                           ETA: {info?.unstakeDays}d
                         </div>
                       ) : regularAmount > 0 && info ? (
                         <button
                           onClick={() => handleStake(symbol, regularAmount)}
-                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm"
+                          className="font-sans text-sm px-4 py-2 text-[#0f1419] hover:opacity-90 transition-opacity font-medium"
+                          style={{ backgroundColor: '#d4af37' }}
                         >
                           Stake to Earn {info.apy}% APY
                         </button>
