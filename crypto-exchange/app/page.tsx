@@ -15,9 +15,11 @@ export default function Home() {
             <h1 className="text-3xl font-bold font-serif" style={{ color: '#d4af37' }}>
               d<span className="text-4xl" style={{ color: '#d4af37' }}>∞</span>kie
             </h1>
-            <p className="text-sm text-gray-400 font-sans italic hidden md:block">
-              The successful investment of effort and resources resulting in prosperity
-            </p>
+            <div className="text-sm text-gray-400 font-sans hidden md:block">
+              <span className="italic">dookie</span> <span className="text-gray-500">/ Latin, noun /</span>
+              <br />
+              <span className="text-gray-300">The successful investment of effort and resources resulting in prosperity.</span>
+            </div>
           </div>
         </div>
       </header>
@@ -53,9 +55,14 @@ export default function Home() {
         {activeTab === 'trading' ? <Trading /> : <Portfolio />}
       </main>
 
-      <footer className="border-t mt-16 py-6" style={{ backgroundColor: '#1a2332', borderColor: '#2a3547' }}>
-        <div className="max-w-[1440px] mx-auto px-4 text-center text-sm text-gray-500 font-sans">
-          <p>A state of enduring abundance achieved through wise action and focus.</p>
+      <footer className="border-t mt-16 py-8" style={{ backgroundColor: '#1a2332', borderColor: '#2a3547' }}>
+        <div className="max-w-[1440px] mx-auto px-4 text-center font-sans">
+          <p className="text-sm text-gray-400">
+            <span className="italic">dookie</span> <span className="text-gray-500">/ Latin, noun /</span>
+          </p>
+          <p className="text-sm text-gray-400 mt-2">
+            A state of enduring abundance achieved through wise action and focus.
+          </p>
         </div>
       </footer>
     </div>
