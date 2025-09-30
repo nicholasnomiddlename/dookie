@@ -20,7 +20,10 @@ const mockPrices: { [key: string]: number } = {
 };
 
 // Mock user portfolio
-let portfolio = {
+let portfolio: {
+  balance: number;
+  holdings: { [key: string]: number };
+} = {
   balance: 10000, // USD
   holdings: {
     BTC: 0.5,
