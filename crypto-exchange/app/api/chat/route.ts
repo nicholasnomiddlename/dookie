@@ -12,16 +12,24 @@ if (!apiKey) {
     const envPath = path.join(process.cwd(), '.env.local');
     console.log('Looking for .env.local at:', envPath);
     if (fs.existsSync(envPath)) {
-      // Remove BOM if present (Windows file encoding issue)
-      let envContent = fs.readFileSync(envPath, 'utf-8').replace(/^\uFEFF/, '');
-      console.log('File exists! Content length:', envContent.length);
-      console.log('First 100 chars:', envContent.substring(0, 100));
-      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/);
-      if (match) {
-        apiKey = match[1].trim();
-        console.log('✓ Loaded API key from .env.local (length:', apiKey.length, ')');
-      } else {
+      // Read file and handle BOM and line endings
+      let envContent = fs.readFileSync(envPath, 'utf-8');
+      // Remove BOM (multiple types)
+      envContent = envContent.replace(/^\uFEFF/, '').replace(/^\uFFFE/, '');
+      // Try to extract the key - be more flexible with whitespace and line endings
+      const lines = envContent.split(/\r?\n/);
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('ANTHROPIC_API_KEY=')) {
+          apiKey = trimmedLine.substring('ANTHROPIC_API_KEY='.length).trim();
+          console.log('✓ Loaded API key from .env.local (length:', apiKey.length, ')');
+          break;
+        }
+      }
+      if (!apiKey) {
         console.log('✗ Could not find ANTHROPIC_API_KEY in file');
+        console.log('Lines found:', lines.length);
+        console.log('Content preview:', envContent.substring(0, 150).replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
       }
     } else {
       console.log('✗ .env.local file not found at:', envPath);
