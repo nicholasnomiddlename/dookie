@@ -249,12 +249,44 @@ export default function Home() {
 
       {/* Fixed Top-Left: Compact Balance Card (appears after funding) */}
       {uiState.showBalance && uiState.balanceCompact && (
-        <div className="fixed top-4 left-4 z-30 animate-scale-down-pulse-left">
+        <div className="fixed top-4 left-4 z-30 animate-scale-down-pulse-left max-w-sm">
           <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-4 shadow-lg">
-            <div className="text-xs text-gray-400 mb-1 font-sans">Balance</div>
-            <div className="text-2xl font-bold font-serif" style={{ color: '#00C853' }}>
+            <div className="text-xs text-gray-400 mb-2 font-sans">Cash Balance</div>
+            <div className="text-xl font-bold font-serif mb-3" style={{ color: '#00C853' }}>
               ${balance.toFixed(2)}
             </div>
+
+            {/* Holdings Table */}
+            {Object.keys(holdings).length > 0 && (
+              <div className="border-t border-[#2a3547] pt-3 mt-2">
+                <div className="text-xs text-gray-400 mb-2 font-sans">Holdings</div>
+                <div className="space-y-2">
+                  {Object.entries(holdings).map(([asset, amount]) => {
+                    const price = 50000; // Simplified price
+                    const notionalValue = amount * price;
+                    return (
+                      <div key={asset} className="grid grid-cols-4 gap-2 text-xs font-sans">
+                        <div className="font-bold text-gray-100">{asset}</div>
+                        <div className="text-right text-gray-300">${price.toLocaleString()}</div>
+                        <div className="text-right text-gray-300 font-mono">{amount.toFixed(4)}</div>
+                        <div className="text-right font-bold" style={{ color: '#d4af37' }}>
+                          ${notionalValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Total Portfolio Value */}
+                <div className="border-t border-[#2a3547] mt-3 pt-2">
+                  <div className="flex justify-between items-center">
+                    <div className="text-xs text-gray-400 font-sans">Total Value</div>
+                    <div className="text-sm font-bold font-serif" style={{ color: '#00C853' }}>
+                      ${(balance + Object.entries(holdings).reduce((sum, [_, amt]) => sum + (amt * 50000), 0)).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
