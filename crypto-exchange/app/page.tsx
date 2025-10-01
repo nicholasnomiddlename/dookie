@@ -39,8 +39,10 @@ export default function Home() {
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Random definition for background
-  const backgroundDef = dookieDefinitions[Math.floor(Math.random() * dookieDefinitions.length)];
+  // Random definition for background - use useState to avoid hydration mismatch
+  const [backgroundDef] = useState(() =>
+    dookieDefinitions[Math.floor(Math.random() * dookieDefinitions.length)]
+  );
 
   // Initial greeting when component mounts
   useEffect(() => {

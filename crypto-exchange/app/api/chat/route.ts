@@ -1,9 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('ANTHROPIC_API_KEY is not set in environment variables');
-  console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')));
+const apiKey = process.env.ANTHROPIC_API_KEY;
+console.log('API Key check:', apiKey ? `Found (length: ${apiKey.length})` : 'NOT FOUND');
+console.log('All env vars with ANTHROPIC:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')));
+
+if (!apiKey) {
+  console.error('⚠️  ANTHROPIC_API_KEY is not set in environment variables');
+  console.error('⚠️  Make sure .env.local exists in the crypto-exchange directory');
 }
 
 const anthropic = new Anthropic({
