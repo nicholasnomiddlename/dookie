@@ -82,7 +82,7 @@ export default function Trading() {
             {Object.entries(prices).map(([symbol, price]) => (
               <div
                 key={symbol}
-                className={`p-4 cursor-pointer transition-all ${
+                className={`p-4 cursor-pointer transition-all duration-[120ms] ease-in-out ${
                   selectedCrypto === symbol
                     ? 'border-2 border-[#d4af37]'
                     : 'border border-[#2a3547] hover:border-[#d4af37]/50'
@@ -116,10 +116,7 @@ export default function Trading() {
               <select
                 value={selectedCrypto}
                 onChange={(e) => setSelectedCrypto(e.target.value)}
-                className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-sans"
-                style={{ borderColor: '#2a3547' }}
-                onFocus={(e) => e.target.style.borderColor = '#d4af37'}
-                onBlur={(e) => e.target.style.borderColor = '#2a3547'}
+                className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-sans transition-all duration-[120ms] ease-in-out focus:border-[#d4af37]"
               >
                 {Object.keys(prices).map(symbol => (
                   <option key={symbol} value={symbol} className="bg-[#0f1419]">
@@ -135,7 +132,7 @@ export default function Trading() {
                 <button
                   type="button"
                   onClick={() => setTradeType('buy')}
-                  className="flex-1 py-3 font-sans font-medium transition-all"
+                  className="flex-1 py-3 font-sans font-medium transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98]"
                   style={{
                     backgroundColor: tradeType === 'buy' ? '#00C853' : '#0f1419',
                     color: tradeType === 'buy' ? '#0f1419' : '#737373',
@@ -148,7 +145,7 @@ export default function Trading() {
                 <button
                   type="button"
                   onClick={() => setTradeType('sell')}
-                  className="flex-1 py-3 font-sans font-medium transition-all"
+                  className="flex-1 py-3 font-sans font-medium transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98]"
                   style={{
                     backgroundColor: tradeType === 'sell' ? '#D32F2F' : '#0f1419',
                     color: tradeType === 'sell' ? '#ffffff' : '#737373',
@@ -169,10 +166,7 @@ export default function Trading() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-mono"
-                style={{ borderColor: '#2a3547' }}
-                onFocus={(e) => e.target.style.borderColor = '#d4af37'}
-                onBlur={(e) => e.target.style.borderColor = '#2a3547'}
+                className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-mono transition-all duration-[120ms] ease-in-out focus:border-[#d4af37]"
                 required
               />
               {prices[selectedCrypto] && amount && (
@@ -185,7 +179,7 @@ export default function Trading() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 font-sans font-bold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 font-sans font-bold transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
               style={{
                 backgroundColor: tradeType === 'buy' ? '#00C853' : '#D32F2F',
                 color: '#ffffff'

@@ -2,6 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 
+// Animation classes
+const ANIMATION_CLASSES = {
+  messageSlideLeft: 'animate-slideInLeft',
+  messageSlideRight: 'animate-slideInRight',
+  cardReveal: 'animate-cardReveal',
+  buttonHover: 'transition-all duration-150 hover:brightness-110',
+  buttonPress: 'active:scale-98',
+  inputFocus: 'transition-all duration-120 focus:border-[#d4af37]',
+};
+
 // Dookie definitions for background
 const dookieDefinitions = [
   { word: 'dookie', pronunciation: '/ Latin, noun /', definition: 'The successful investment of effort and resources resulting in prosperity.' },
@@ -209,7 +219,9 @@ export default function Home() {
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`mb-4 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}
+                  className={`mb-4 ${msg.role === 'user' ? 'text-right' : 'text-left'} ${
+                    msg.role === 'user' ? ANIMATION_CLASSES.messageSlideRight : ANIMATION_CLASSES.messageSlideLeft
+                  }`}
                 >
                   <div
                     className={`inline-block px-4 py-2 rounded-lg font-sans ${
@@ -223,7 +235,13 @@ export default function Home() {
                 </div>
               ))}
               {loading && messages.length > 0 && (
-                <div className="text-gray-400 font-sans text-sm">Thinking...</div>
+                <div className="flex items-center gap-2 text-gray-400 font-sans text-sm">
+                  <div className="flex gap-1">
+                    <span className="animate-pulse-dot" style={{ animationDelay: '0ms' }}>.</span>
+                    <span className="animate-pulse-dot" style={{ animationDelay: '166ms' }}>.</span>
+                    <span className="animate-pulse-dot" style={{ animationDelay: '332ms' }}>.</span>
+                  </div>
+                </div>
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -237,12 +255,12 @@ export default function Home() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your message..."
                   disabled={loading}
-                  className="flex-1 bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-sans focus:border-[#d4af37] disabled:opacity-50"
+                  className="flex-1 bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-sans transition-all duration-[120ms] ease-in-out focus:border-[#d4af37] disabled:opacity-50"
                 />
                 <button
                   type="submit"
                   disabled={loading || !input.trim()}
-                  className="px-6 py-3 font-sans font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 font-sans font-medium transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
                   style={{ backgroundColor: '#d4af37', color: '#0f1419' }}
                 >
                   Send
@@ -254,17 +272,52 @@ export default function Home() {
 
         {/* Funding Info - appears when AI triggers it */}
         {uiState.showFundingInfo && (
-          <div className="w-full max-w-2xl px-4 mb-8">
+          <div className="w-full max-w-2xl px-4 mb-8 animate-cardReveal">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
-              <h3 className="text-lg font-bold font-serif mb-3" style={{ color: '#d4af37' }}>
-                Deposit Address
+              <h3 className="text-lg font-bold font-serif mb-4" style={{ color: '#d4af37' }}>
+                Fund Your Account
               </h3>
-              <div className="bg-[#0f1419] p-4 rounded border border-[#2a3547] mb-4">
-                <code className="text-gray-300 font-mono text-sm">{uiState.depositAddress}</code>
+
+              <div className="mb-4">
+                <h4 className="text-sm font-sans font-semibold mb-3 text-gray-300">
+                  How to send PYUSD via PayPal/Venmo:
+                </h4>
+                <ol className="space-y-2 text-sm font-sans text-gray-300 ml-4">
+                  <li className="flex">
+                    <span className="font-semibold mr-2 text-[#d4af37]">1.</span>
+                    <span>Open the crypto section in your PayPal or Venmo app</span>
+                  </li>
+                  <li className="flex">
+                    <span className="font-semibold mr-2 text-[#d4af37]">2.</span>
+                    <span>Select PYUSD to send</span>
+                  </li>
+                  <li className="flex">
+                    <span className="font-semibold mr-2 text-[#d4af37]">3.</span>
+                    <span>Input the wallet address shown below</span>
+                  </li>
+                  <li className="flex">
+                    <span className="font-semibold mr-2 text-[#d4af37]">4.</span>
+                    <span>Review and confirm transaction details</span>
+                  </li>
+                  <li className="flex">
+                    <span className="font-semibold mr-2 text-[#d4af37]">5.</span>
+                    <span>Send the transaction</span>
+                  </li>
+                </ol>
               </div>
+
+              <div className="mb-4">
+                <h4 className="text-sm font-sans font-semibold mb-2 text-gray-400">
+                  Deposit Address:
+                </h4>
+                <div className="bg-[#0f1419] p-4 rounded border border-[#2a3547]">
+                  <code className="text-gray-300 font-mono text-sm break-all">{uiState.depositAddress}</code>
+                </div>
+              </div>
+
               <button
                 onClick={handleSimulateFunding}
-                className="w-full py-2 px-4 text-sm font-sans font-medium border-2 border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-[#0f1419] transition-all"
+                className="w-full py-2 px-4 text-sm font-sans font-medium border-2 border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-[#0f1419] transition-all duration-[120ms] ease-in-out active:scale-[0.98]"
               >
                 Simulate Funding ($6,000)
               </button>
@@ -274,7 +327,7 @@ export default function Home() {
 
         {/* Balance Section - appears after funding */}
         {uiState.showBalance && (
-          <div className="w-full max-w-2xl px-4 mb-8">
+          <div className="w-full max-w-2xl px-4 mb-8 animate-cardReveal">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
               <div className="text-sm text-gray-400 mb-2 font-sans">Balance</div>
               <div className="text-3xl font-bold font-serif" style={{ color: '#00C853' }}>
@@ -286,7 +339,7 @@ export default function Home() {
 
         {/* Trade Interface - appears when AI triggers it */}
         {uiState.showTrading && uiState.selectedAsset && (
-          <div className="w-full max-w-2xl px-4 mb-8">
+          <div className="w-full max-w-2xl px-4 mb-8 animate-cardReveal">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
               <h3 className="text-xl font-bold font-serif mb-4">Trade {uiState.selectedAsset}</h3>
               <div className="mb-4">
@@ -299,13 +352,13 @@ export default function Home() {
                   value={tradeAmount}
                   onChange={(e) => setTradeAmount(e.target.value)}
                   placeholder="0.00"
-                  className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-mono focus:border-[#d4af37]"
+                  className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-mono transition-all duration-[120ms] ease-in-out focus:border-[#d4af37]"
                 />
               </div>
               <button
                 onClick={handleBuy}
                 disabled={!tradeAmount}
-                className="w-full py-3 font-sans font-bold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 font-sans font-bold transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
                 style={{ backgroundColor: '#00C853', color: '#ffffff' }}
               >
                 Buy {uiState.selectedAsset}
@@ -316,7 +369,7 @@ export default function Home() {
 
         {/* Portfolio Section - appears after trade */}
         {uiState.showPortfolio && Object.keys(holdings).length > 0 && (
-          <div className="w-full max-w-2xl px-4">
+          <div className="w-full max-w-2xl px-4 animate-cardReveal">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
               <h3 className="text-xl font-bold font-serif mb-4">Your Portfolio</h3>
               <div className="space-y-3">

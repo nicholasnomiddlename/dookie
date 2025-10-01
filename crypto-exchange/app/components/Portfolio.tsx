@@ -233,7 +233,7 @@ export default function Portfolio() {
                 if (regularAmount === 0 && !stakedData && !unstakingData) return null;
 
                 return (
-                  <tr key={symbol} className="border-b border-[#2a3547] hover:bg-[#0f1419] transition-colors">
+                  <tr key={symbol} className="border-b border-[#2a3547] hover:bg-[#0f1419] transition-all duration-[120ms] ease-in-out">
                     <td className="py-5 px-4">
                       <div className="font-bold font-sans text-gray-100">{symbol}</div>
                       <div className="text-sm text-gray-400 font-sans">{cryptoNames[symbol]}</div>
@@ -280,7 +280,7 @@ export default function Portfolio() {
                       {stakedData ? (
                         <button
                           onClick={() => handleUnstake(symbol)}
-                          className="font-sans text-sm px-4 py-2 border-2 text-gray-100 hover:bg-[#2a3547] transition-colors"
+                          className="font-sans text-sm px-4 py-2 border-2 text-gray-100 hover:bg-[#2a3547] transition-all duration-[120ms] ease-in-out active:scale-[0.98]"
                           style={{ borderColor: '#F9A825', backgroundColor: 'transparent' }}
                         >
                           Unstake
@@ -292,7 +292,7 @@ export default function Portfolio() {
                       ) : regularAmount > 0 && info ? (
                         <button
                           onClick={() => handleStake(symbol, regularAmount)}
-                          className="font-sans text-sm px-4 py-2 text-[#0f1419] hover:opacity-90 transition-opacity font-medium"
+                          className="font-sans text-sm px-4 py-2 text-[#0f1419] transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98] font-medium"
                           style={{ backgroundColor: '#d4af37' }}
                         >
                           Stake to Earn {info.apy}% APY
