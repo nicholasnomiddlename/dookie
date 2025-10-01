@@ -1,9 +1,32 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import * as path from 'path';
+import * as fs from 'fs';
 
-const apiKey = process.env.ANTHROPIC_API_KEY;
+// Manually load .env.local if not already loaded
+let apiKey = process.env.ANTHROPIC_API_KEY;
+
+if (!apiKey) {
+  console.log('⚠️  API key not found in env, trying to load .env.local manually');
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    console.log('Looking for .env.local at:', envPath);
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, 'utf-8');
+      const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/);
+      if (match) {
+        apiKey = match[1].trim();
+        console.log('✓ Loaded API key from .env.local');
+      }
+    } else {
+      console.log('✗ .env.local file not found at:', envPath);
+    }
+  } catch (error) {
+    console.error('Error loading .env.local:', error);
+  }
+}
+
 console.log('API Key check:', apiKey ? `Found (length: ${apiKey.length})` : 'NOT FOUND');
-console.log('All env vars with ANTHROPIC:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')));
 
 if (!apiKey) {
   console.error('⚠️  ANTHROPIC_API_KEY is not set in environment variables');
@@ -11,7 +34,7 @@ if (!apiKey) {
 }
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '',
+  apiKey: apiKey || '',
 });
 
 const SYSTEM_PROMPT = `You are a helpful financial assistant for dookie, a modern crypto trading platform. Your role is to guide users through their trading journey in a conversational, friendly way.
