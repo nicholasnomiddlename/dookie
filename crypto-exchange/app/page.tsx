@@ -32,6 +32,8 @@ interface UIState {
   showPortfolio: boolean;
   selectedAsset?: string;
   depositAddress?: string;
+  balanceCompact: boolean; // Compact mode after funding
+  showDepositAddressCard: boolean; // Show deposit address in top-right
 }
 
 export default function Home() {
@@ -47,6 +49,8 @@ export default function Home() {
     showFundingInfo: false,
     showTrading: false,
     showPortfolio: false,
+    balanceCompact: false,
+    showDepositAddressCard: false,
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -105,6 +109,7 @@ export default function Home() {
               showBalance: true,
               showFundingInfo: true,
               depositAddress: '0xDOOK...IE420',
+              showDepositAddressCard: true, // Show address card in top-right
             }));
             break;
           case 'execute_trade':
@@ -208,8 +213,13 @@ export default function Home() {
     setBalance(6000);
     setFundingLoading(false);
 
-    // Hide funding info and show balance
-    setUIState((prev) => ({ ...prev, showBalance: true, showFundingInfo: false }));
+    // Hide funding info, shrink balance to compact mode in top-left
+    setUIState((prev) => ({
+      ...prev,
+      showBalance: true,
+      showFundingInfo: false,
+      balanceCompact: true,
+    }));
 
     // Add assistant message about successful funding
     const newMessages = [
@@ -236,6 +246,40 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Fixed Top-Left: Compact Balance Card (appears after funding) */}
+      {uiState.showBalance && uiState.balanceCompact && (
+        <div
+          className="fixed top-4 left-4 z-30 animate-cardReveal"
+          style={{
+            animation: 'cardReveal 400ms ease-out'
+          }}
+        >
+          <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-4 shadow-lg">
+            <div className="text-xs text-gray-400 mb-1 font-sans">Balance</div>
+            <div className="text-2xl font-bold font-serif" style={{ color: '#00C853' }}>
+              ${balance.toFixed(2)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fixed Top-Right: Deposit Address Card */}
+      {uiState.showDepositAddressCard && uiState.depositAddress && (
+        <div
+          className="fixed top-4 right-4 z-30"
+          style={{
+            animation: 'cardReveal 400ms ease-out'
+          }}
+        >
+          <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-4 shadow-lg max-w-xs">
+            <div className="text-xs text-gray-400 mb-2 font-sans">Deposit Address</div>
+            <div className="bg-[#0f1419] p-2 rounded border border-[#2a3547]">
+              <code className="text-gray-300 font-mono text-xs break-all">{uiState.depositAddress}</code>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center justify-start min-h-screen pt-20">
@@ -369,8 +413,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* Balance Section - appears after funding */}
-        {uiState.showBalance && (
+        {/* Balance Section - appears after funding, then animates to top-left */}
+        {uiState.showBalance && !uiState.balanceCompact && (
           <div className="w-full max-w-2xl px-4 mb-8 animate-cardReveal">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
               <div className="text-sm text-gray-400 mb-2 font-sans">Balance</div>
