@@ -249,7 +249,7 @@ export default function Home() {
 
       {/* Fixed Top-Left: Compact Balance Card (appears after funding) */}
       {uiState.showBalance && uiState.balanceCompact && (
-        <div className="fixed top-4 left-4 z-30 animate-scale-down-pulse">
+        <div className="fixed top-4 left-4 z-30 animate-scale-down-pulse-left">
           <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-4 shadow-lg">
             <div className="text-xs text-gray-400 mb-1 font-sans">Balance</div>
             <div className="text-2xl font-bold font-serif" style={{ color: '#00C853' }}>
@@ -260,8 +260,8 @@ export default function Home() {
       )}
 
       {/* Fixed Top-Right: Deposit Address Card */}
-      {uiState.showDepositAddressCard && uiState.depositAddress && (
-        <div className="fixed top-4 right-4 z-30 animate-scale-down-pulse">
+      {uiState.showDepositAddressCard && uiState.depositAddress && !uiState.showFundingInfo && (
+        <div className="fixed top-4 right-4 z-30 animate-scale-down-pulse-right">
           <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-4 shadow-lg max-w-xs">
             <div className="text-xs text-gray-400 mb-2 font-sans">Deposit Address</div>
             <div className="bg-[#0f1419] p-2 rounded border border-[#2a3547]">
