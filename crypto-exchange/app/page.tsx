@@ -12,12 +12,12 @@ const ANIMATION_CLASSES = {
   inputFocus: 'transition-all duration-120 focus:border-[#d4af37]',
 };
 
-// Dookie definitions for background
+// Dookie definitions for background - formatted as dictionary entries
 const dookieDefinitions = [
-  { word: 'dookie', pronunciation: '/ Latin, noun /', definition: 'The successful investment of effort and resources resulting in prosperity.' },
-  { word: 'dookie', pronunciation: '/ Latin, noun /', definition: 'A state of enduring abundance achieved through wise action and focus.' },
-  { word: 'dookie', pronunciation: '/ Latin, noun /', definition: 'The art of transforming patience into tangible wealth.' },
-  { word: 'dookie', pronunciation: '/ Latin, noun /', definition: 'Strategic discipline yielding compound returns over time.' },
+  { word: 'dookie', pronunciation: '/ˈduː.ki/', etymology: '[Latin, from dux "leader" + copia "abundance"]', partOfSpeech: 'noun', definition: '1. The successful investment of effort and resources resulting in prosperity. 2. Strategic action toward wealth creation.' },
+  { word: 'dookie', pronunciation: '/ˈduː.ki/', etymology: '[Late Latin, derived from ducere "to lead" + fortuna "fortune"]', partOfSpeech: 'noun', definition: '1. A state of enduring abundance achieved through wise action and focus. 2. Sustainable prosperity through deliberate effort.' },
+  { word: 'dookie', pronunciation: '/ˈduː.ki/', etymology: '[Medieval Latin, compound of dux "guide" + aurum "gold"]', partOfSpeech: 'noun', definition: '1. The art of transforming patience into tangible wealth. 2. The practice of disciplined value accumulation.' },
+  { word: 'dookie', pronunciation: '/ˈduː.ki/', etymology: '[From Latin ducere "to lead" + tempus "time"]', partOfSpeech: 'noun', definition: '1. Strategic discipline yielding compound returns over time. 2. The wisdom of long-term capital allocation.' },
 ];
 
 interface Message {
@@ -245,11 +245,13 @@ export default function Home() {
       {/* Background definition - faded */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none select-none">
         <div className="text-center" style={{ opacity: 0.03 }}>
-          <div className="text-6xl font-serif italic mb-4" style={{ color: '#d4af37' }}>
+          <div className="text-6xl font-serif italic mb-2" style={{ color: '#d4af37' }}>
             {backgroundDef.word}
           </div>
-          <div className="text-2xl text-gray-500 mb-8">{backgroundDef.pronunciation}</div>
-          <div className="text-3xl text-gray-400 max-w-3xl mx-auto px-8">
+          <div className="text-2xl text-gray-500 mb-2">{backgroundDef.pronunciation}</div>
+          <div className="text-xl text-gray-500 italic mb-6">{backgroundDef.etymology}</div>
+          <div className="text-lg text-gray-500 font-sans mb-4">{backgroundDef.partOfSpeech}</div>
+          <div className="text-3xl text-gray-400 max-w-3xl mx-auto px-8 leading-relaxed">
             {backgroundDef.definition}
           </div>
         </div>
