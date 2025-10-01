@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Dookie definitions for background
 const dookieDefinitions = [
@@ -10,43 +10,167 @@ const dookieDefinitions = [
   { word: 'dookie', pronunciation: '/ Latin, noun /', definition: 'Strategic discipline yielding compound returns over time.' },
 ];
 
-type FlowStep = 'funding' | 'funded' | 'trade-prompt' | 'trading' | 'portfolio';
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface UIState {
+  showBalance: boolean;
+  showFundingInfo: boolean;
+  showTrading: boolean;
+  showPortfolio: boolean;
+  selectedAsset?: string;
+  depositAddress?: string;
+}
 
 export default function Home() {
-  const [step, setStep] = useState<FlowStep>('funding');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState(0);
   const [holdings, setHoldings] = useState<{ [key: string]: number }>({});
-  const [selectedAsset, setSelectedAsset] = useState('');
   const [tradeAmount, setTradeAmount] = useState('');
+  const [uiState, setUIState] = useState<UIState>({
+    showBalance: false,
+    showFundingInfo: false,
+    showTrading: false,
+    showPortfolio: false,
+  });
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Random definition for background
   const backgroundDef = dookieDefinitions[Math.floor(Math.random() * dookieDefinitions.length)];
 
-  const handleFund = () => {
-    setBalance(6000);
-    setStep('funded');
+  // Initial greeting when component mounts
+  useEffect(() => {
+    const initChat = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: 'Hello' }],
+            balance,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.content) {
+          const assistantMessage = data.content.find((c: any) => c.type === 'text');
+          if (assistantMessage) {
+            setMessages([{ role: 'assistant', content: assistantMessage.text }]);
+          }
+
+          // Check for tool use
+          handleToolUse(data.content);
+        }
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initChat();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleToolUse = (content: any[]) => {
+    content.forEach((item: any) => {
+      if (item.type === 'tool_use') {
+        switch (item.name) {
+          case 'show_funding_info':
+            setUIState((prev) => ({
+              ...prev,
+              showBalance: true,
+              showFundingInfo: true,
+              depositAddress: '0xDOOK...IE420',
+            }));
+            break;
+          case 'execute_trade':
+            setUIState((prev) => ({
+              ...prev,
+              showBalance: true,
+              showTrading: true,
+              selectedAsset: item.input.asset,
+            }));
+            break;
+          case 'show_portfolio':
+            setUIState((prev) => ({
+              ...prev,
+              showBalance: true,
+              showPortfolio: true,
+            }));
+            break;
+        }
+      }
+    });
   };
 
-  const handleTradePrompt = () => {
-    setStep('trade-prompt');
-  };
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
 
-  const handleSelectAsset = (asset: string) => {
-    setSelectedAsset(asset);
-    setStep('trading');
+    const userMessage: Message = { role: 'user', content: input };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: newMessages,
+          balance,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.content) {
+        const assistantMessage = data.content.find((c: any) => c.type === 'text');
+        if (assistantMessage) {
+          setMessages([...newMessages, { role: 'assistant', content: assistantMessage.text }]);
+        }
+
+        // Handle tool use
+        handleToolUse(data.content);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages([
+        ...newMessages,
+        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBuy = () => {
-    if (!selectedAsset || !tradeAmount) return;
+    if (!uiState.selectedAsset || !tradeAmount) return;
 
     const amount = parseFloat(tradeAmount);
     setHoldings({
       ...holdings,
-      [selectedAsset]: (holdings[selectedAsset] || 0) + amount
+      [uiState.selectedAsset]: (holdings[uiState.selectedAsset] || 0) + amount,
     });
-    setBalance(balance - (amount * 50000)); // Simplified pricing
+    setBalance(balance - amount * 50000); // Simplified pricing
     setTradeAmount('');
-    setStep('portfolio');
+    setUIState((prev) => ({ ...prev, showPortfolio: true }));
+  };
+
+  const handleSimulateFunding = () => {
+    setBalance(6000);
+    setUIState((prev) => ({ ...prev, showBalance: true }));
   };
 
   return (
@@ -71,103 +195,82 @@ export default function Home() {
           d<span className="text-5xl" style={{ color: '#d4af37' }}>∞</span>kie
         </h1>
 
-        {/* Dialogue Box */}
+        {/* Conversation Box */}
         <div className="w-full max-w-2xl px-4 mb-8">
-          <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-8 shadow-lg">
-            {step === 'funding' && (
-              <>
-                <p className="text-xl text-gray-200 mb-6 font-sans">
-                  How would you like to fund your account?
-                </p>
-                <div className="flex flex-col gap-3">
-                  <button
-                    onClick={handleFund}
-                    className="w-full py-3 px-6 bg-[#0f1419] border-2 border-[#2a3547] text-gray-300 font-sans font-medium hover:border-[#d4af37] transition-all text-left"
-                  >
-                    Bank Account
-                  </button>
-                  <button
-                    onClick={handleFund}
-                    className="w-full py-3 px-6 bg-[#0f1419] border-2 border-[#2a3547] text-gray-300 font-sans font-medium hover:border-[#d4af37] transition-all text-left"
-                  >
-                    Stablecoin (PYUSD)
-                  </button>
-                  <button
-                    onClick={handleFund}
-                    className="w-full py-3 px-6 bg-[#0f1419] border-2 border-[#2a3547] text-gray-300 font-sans font-medium hover:border-[#d4af37] transition-all text-left"
-                  >
-                    Credit Card
-                  </button>
-                </div>
-              </>
-            )}
-
-            {step === 'funded' && (
-              <>
-                <p className="text-xl text-gray-200 mb-4 font-sans">
-                  Great! Send PYUSD to this address:
-                </p>
-                <div className="bg-[#0f1419] p-4 rounded border border-[#2a3547] mb-6">
-                  <code className="text-gray-300 font-mono text-sm">0xDOOK...IE420</code>
-                </div>
-                <p className="text-sm text-gray-400 mb-6 font-sans">
-                  (Simulating funding with $6,000...)
-                </p>
-                <button
-                  onClick={handleTradePrompt}
-                  className="w-full py-3 font-sans font-medium"
-                  style={{ backgroundColor: '#d4af37', color: '#0f1419' }}
+          <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] shadow-lg">
+            {/* Messages */}
+            <div className="p-6 max-h-96 overflow-y-auto">
+              {messages.length === 0 && loading && (
+                <div className="text-gray-400 font-sans">Starting conversation...</div>
+              )}
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`mb-4 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}
                 >
-                  Continue
-                </button>
-              </>
-            )}
-
-            {step === 'trade-prompt' && (
-              <>
-                <p className="text-xl text-gray-200 mb-6 font-sans">
-                  You're all set! What would you like to trade?
-                </p>
-                <div className="flex flex-col gap-3">
-                  <button
-                    onClick={() => handleSelectAsset('BTC')}
-                    className="w-full py-3 px-6 bg-[#0f1419] border-2 border-[#2a3547] text-gray-300 font-sans font-medium hover:border-[#d4af37] transition-all text-left"
+                  <div
+                    className={`inline-block px-4 py-2 rounded-lg font-sans ${
+                      msg.role === 'user'
+                        ? 'bg-[#d4af37] text-[#0f1419]'
+                        : 'bg-[#0f1419] text-gray-200 border border-[#2a3547]'
+                    }`}
                   >
-                    Bitcoin (BTC)
-                  </button>
-                  <button
-                    onClick={() => handleSelectAsset('ETH')}
-                    className="w-full py-3 px-6 bg-[#0f1419] border-2 border-[#2a3547] text-gray-300 font-sans font-medium hover:border-[#d4af37] transition-all text-left"
-                  >
-                    Ethereum (ETH)
-                  </button>
-                  <button
-                    onClick={() => handleSelectAsset('SOL')}
-                    className="w-full py-3 px-6 bg-[#0f1419] border-2 border-[#2a3547] text-gray-300 font-sans font-medium hover:border-[#d4af37] transition-all text-left"
-                  >
-                    Solana (SOL)
-                  </button>
+                    {msg.content}
+                  </div>
                 </div>
-              </>
-            )}
+              ))}
+              {loading && messages.length > 0 && (
+                <div className="text-gray-400 font-sans text-sm">Thinking...</div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
 
-            {(step === 'trading' || step === 'portfolio') && (
-              <>
-                <p className="text-xl text-gray-200 mb-6 font-sans">
-                  What would you like to do next?
-                </p>
+            {/* Input */}
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-[#2a3547]">
+              <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Ask me anything..."
-                  className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-sans focus:border-[#d4af37]"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type your message..."
+                  disabled={loading}
+                  className="flex-1 bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-sans focus:border-[#d4af37] disabled:opacity-50"
                 />
-              </>
-            )}
+                <button
+                  type="submit"
+                  disabled={loading || !input.trim()}
+                  className="px-6 py-3 font-sans font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: '#d4af37', color: '#0f1419' }}
+                >
+                  Send
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
+        {/* Funding Info - appears when AI triggers it */}
+        {uiState.showFundingInfo && (
+          <div className="w-full max-w-2xl px-4 mb-8">
+            <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
+              <h3 className="text-lg font-bold font-serif mb-3" style={{ color: '#d4af37' }}>
+                Deposit Address
+              </h3>
+              <div className="bg-[#0f1419] p-4 rounded border border-[#2a3547] mb-4">
+                <code className="text-gray-300 font-mono text-sm">{uiState.depositAddress}</code>
+              </div>
+              <button
+                onClick={handleSimulateFunding}
+                className="w-full py-2 px-4 text-sm font-sans font-medium border-2 border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-[#0f1419] transition-all"
+              >
+                Simulate Funding ($6,000)
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Balance Section - appears after funding */}
-        {(step === 'funded' || step === 'trade-prompt' || step === 'trading' || step === 'portfolio') && (
+        {uiState.showBalance && (
           <div className="w-full max-w-2xl px-4 mb-8">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
               <div className="text-sm text-gray-400 mb-2 font-sans">Balance</div>
@@ -178,13 +281,15 @@ export default function Home() {
           </div>
         )}
 
-        {/* Trade Interface - appears after selecting asset */}
-        {(step === 'trading' || step === 'portfolio') && (
+        {/* Trade Interface - appears when AI triggers it */}
+        {uiState.showTrading && uiState.selectedAsset && (
           <div className="w-full max-w-2xl px-4 mb-8">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
-              <h3 className="text-xl font-bold font-serif mb-4">Trade {selectedAsset}</h3>
+              <h3 className="text-xl font-bold font-serif mb-4">Trade {uiState.selectedAsset}</h3>
               <div className="mb-4">
-                <label className="block text-sm font-sans font-medium mb-2 text-gray-300">Amount</label>
+                <label className="block text-sm font-sans font-medium mb-2 text-gray-300">
+                  Amount
+                </label>
                 <input
                   type="number"
                   step="0.00000001"
@@ -200,20 +305,23 @@ export default function Home() {
                 className="w-full py-3 font-sans font-bold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: '#00C853', color: '#ffffff' }}
               >
-                Buy {selectedAsset}
+                Buy {uiState.selectedAsset}
               </button>
             </div>
           </div>
         )}
 
         {/* Portfolio Section - appears after trade */}
-        {step === 'portfolio' && (
+        {uiState.showPortfolio && Object.keys(holdings).length > 0 && (
           <div className="w-full max-w-2xl px-4">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
               <h3 className="text-xl font-bold font-serif mb-4">Your Portfolio</h3>
               <div className="space-y-3">
                 {Object.entries(holdings).map(([asset, amount]) => (
-                  <div key={asset} className="flex justify-between items-center py-3 px-4 bg-[#0f1419] border border-[#2a3547] rounded">
+                  <div
+                    key={asset}
+                    className="flex justify-between items-center py-3 px-4 bg-[#0f1419] border border-[#2a3547] rounded"
+                  >
                     <div>
                       <div className="font-bold font-sans text-gray-100">{asset}</div>
                       <div className="text-sm text-gray-400 font-mono">{amount.toFixed(8)}</div>
