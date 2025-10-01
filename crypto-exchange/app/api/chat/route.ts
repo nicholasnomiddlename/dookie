@@ -3,47 +3,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as path from 'path';
 import * as fs from 'fs';
 
-// Manually load .env.local if not already loaded
+// Manually load .env.local if not already loaded (fallback for Windows)
 let apiKey = process.env.ANTHROPIC_API_KEY;
 
 if (!apiKey) {
-  console.log('⚠️  API key not found in env, trying to load .env.local manually');
   try {
     const envPath = path.join(process.cwd(), '.env.local');
-    console.log('Looking for .env.local at:', envPath);
     if (fs.existsSync(envPath)) {
-      // Read file and handle BOM and line endings
-      let envContent = fs.readFileSync(envPath, 'utf-8');
-      // Remove BOM (multiple types)
-      envContent = envContent.replace(/^\uFEFF/, '').replace(/^\uFFFE/, '');
-      // Try to extract the key - be more flexible with whitespace and line endings
+      const envContent = fs.readFileSync(envPath, 'utf-8').replace(/^\uFEFF/, '');
       const lines = envContent.split(/\r?\n/);
       for (const line of lines) {
         const trimmedLine = line.trim();
         if (trimmedLine.startsWith('ANTHROPIC_API_KEY=')) {
           apiKey = trimmedLine.substring('ANTHROPIC_API_KEY='.length).trim();
-          console.log('✓ Loaded API key from .env.local (length:', apiKey.length, ')');
           break;
         }
       }
-      if (!apiKey) {
-        console.log('✗ Could not find ANTHROPIC_API_KEY in file');
-        console.log('Lines found:', lines.length);
-        console.log('Content preview:', envContent.substring(0, 150).replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
-      }
-    } else {
-      console.log('✗ .env.local file not found at:', envPath);
     }
   } catch (error) {
     console.error('Error loading .env.local:', error);
   }
-}
-
-console.log('API Key check:', apiKey ? `Found (length: ${apiKey.length})` : 'NOT FOUND');
-
-if (!apiKey) {
-  console.error('⚠️  ANTHROPIC_API_KEY is not set in environment variables');
-  console.error('⚠️  Make sure .env.local exists in the crypto-exchange directory');
 }
 
 const anthropic = new Anthropic({

@@ -49,7 +49,6 @@ export default function Home() {
     const initChat = async () => {
       setLoading(true);
       try {
-        console.log('Initializing chat with balance:', balance);
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -59,14 +58,11 @@ export default function Home() {
           }),
         });
 
-        console.log('Response status:', response.status);
         const data = await response.json();
-        console.log('Response data:', data);
 
         if (data.content) {
           const assistantMessage = data.content.find((c: any) => c.type === 'text');
           if (assistantMessage) {
-            console.log('Setting assistant message:', assistantMessage.text);
             setMessages([{ role: 'assistant', content: assistantMessage.text }]);
           }
 
