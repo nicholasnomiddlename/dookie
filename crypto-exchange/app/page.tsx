@@ -192,7 +192,6 @@ export default function Home() {
     });
     setBalance(balance - cost);
     setTradeAmount('');
-    setUIState((prev) => ({ ...prev, showPortfolio: true }));
 
     // Add confirmation message
     setMessages([
@@ -259,7 +258,15 @@ export default function Home() {
             {/* Holdings Table */}
             {Object.keys(holdings).length > 0 && (
               <div className="border-t border-[#2a3547] pt-3 mt-2">
-                <div className="text-xs text-gray-400 mb-2 font-sans">Holdings</div>
+                <div className="text-xs text-gray-400 mb-3 font-sans">Holdings</div>
+                {/* Table Headers */}
+                <div className="grid grid-cols-4 gap-2 text-xs font-sans mb-2 pb-1 border-b border-[#2a3547]">
+                  <div className="font-semibold text-gray-500">Asset</div>
+                  <div className="text-right font-semibold text-gray-500">Price</div>
+                  <div className="text-right font-semibold text-gray-500">Units</div>
+                  <div className="text-right font-semibold text-gray-500">Value</div>
+                </div>
+                {/* Table Rows */}
                 <div className="space-y-2">
                   {Object.entries(holdings).map(([asset, amount]) => {
                     const price = 50000; // Simplified price
@@ -510,30 +517,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Portfolio Section - appears after trade */}
-        {uiState.showPortfolio && Object.keys(holdings).length > 0 && (
-          <div className="w-full max-w-2xl px-4 animate-cardReveal">
-            <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
-              <h3 className="text-xl font-bold font-serif mb-4">Your Portfolio</h3>
-              <div className="space-y-3">
-                {Object.entries(holdings).map(([asset, amount]) => (
-                  <div
-                    key={asset}
-                    className="flex justify-between items-center py-3 px-4 bg-[#0f1419] border border-[#2a3547] rounded"
-                  >
-                    <div>
-                      <div className="font-bold font-sans text-gray-100">{asset}</div>
-                      <div className="text-sm text-gray-400 font-mono">{amount.toFixed(8)}</div>
-                    </div>
-                    <div className="text-lg font-mono" style={{ color: '#d4af37' }}>
-                      ${(amount * 50000).toFixed(2)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
