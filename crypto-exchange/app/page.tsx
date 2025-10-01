@@ -34,6 +34,7 @@ interface UIState {
   depositAddress?: string;
   balanceCompact: boolean; // Compact mode after funding
   showDepositAddressCard: boolean; // Show deposit address in top-right
+  hasCompletedFirstTrade: boolean; // Track if user has made their first trade
 }
 
 export default function Home() {
@@ -51,6 +52,7 @@ export default function Home() {
     showPortfolio: false,
     balanceCompact: false,
     showDepositAddressCard: false,
+    hasCompletedFirstTrade: false,
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -193,12 +195,19 @@ export default function Home() {
     setBalance(balance - cost);
     setTradeAmount('');
 
+    // Mark first trade as complete and hide trading widget
+    setUIState((prev) => ({
+      ...prev,
+      hasCompletedFirstTrade: true,
+      showTrading: false,
+    }));
+
     // Add confirmation message
     setMessages([
       ...messages,
       {
         role: 'assistant' as const,
-        content: `Great! I've placed your order for ${amount} ${asset}. You can see your holdings below.`
+        content: `Great! I've placed your order for ${amount} ${asset}. You can see your holdings in the portfolio.`
       }
     ]);
   };
@@ -246,54 +255,14 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Fixed Top-Left: Compact Balance Card (appears after funding) */}
-      {uiState.showBalance && uiState.balanceCompact && (
+      {/* Fixed Top-Left: Compact Balance Card (appears after funding, before first trade) */}
+      {uiState.showBalance && uiState.balanceCompact && !uiState.hasCompletedFirstTrade && (
         <div className="fixed top-4 left-4 z-30 animate-scale-down-pulse-left max-w-sm">
           <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-4 shadow-lg">
             <div className="text-xs text-gray-400 mb-2 font-sans">Cash Balance</div>
-            <div className="text-xl font-bold font-serif mb-3" style={{ color: '#00C853' }}>
+            <div className="text-xl font-bold font-serif" style={{ color: '#00C853' }}>
               ${balance.toFixed(2)}
             </div>
-
-            {/* Holdings Table */}
-            {Object.keys(holdings).length > 0 && (
-              <div className="border-t border-[#2a3547] pt-3 mt-2">
-                <div className="text-xs text-gray-400 mb-3 font-sans">Holdings</div>
-                {/* Table Headers */}
-                <div className="grid grid-cols-4 gap-2 text-xs font-sans mb-2 pb-1 border-b border-[#2a3547]">
-                  <div className="font-semibold text-gray-500">Asset</div>
-                  <div className="text-right font-semibold text-gray-500">Price</div>
-                  <div className="text-right font-semibold text-gray-500">Units</div>
-                  <div className="text-right font-semibold text-gray-500">Value</div>
-                </div>
-                {/* Table Rows */}
-                <div className="space-y-2">
-                  {Object.entries(holdings).map(([asset, amount]) => {
-                    const price = 50000; // Simplified price
-                    const notionalValue = amount * price;
-                    return (
-                      <div key={asset} className="grid grid-cols-4 gap-2 text-xs font-sans">
-                        <div className="font-bold text-gray-100">{asset}</div>
-                        <div className="text-right text-gray-300">${price.toLocaleString()}</div>
-                        <div className="text-right text-gray-300 font-mono">{amount.toFixed(4)}</div>
-                        <div className="text-right font-bold" style={{ color: '#d4af37' }}>
-                          ${notionalValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                {/* Total Portfolio Value */}
-                <div className="border-t border-[#2a3547] mt-3 pt-2">
-                  <div className="flex justify-between items-center">
-                    <div className="text-xs text-gray-400 font-sans">Total Value</div>
-                    <div className="text-sm font-bold font-serif" style={{ color: '#00C853' }}>
-                      ${(balance + Object.entries(holdings).reduce((sum, [_, amt]) => sum + (amt * 50000), 0)).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -454,8 +423,84 @@ export default function Home() {
           </div>
         )}
 
-        {/* Trade Interface - appears when AI triggers it */}
-        {uiState.showTrading && (
+        {/* Expanded Portfolio - appears after first trade */}
+        {uiState.hasCompletedFirstTrade && Object.keys(holdings).length > 0 && (
+          <div className="w-full max-w-2xl px-4 mb-8 animate-cardReveal">
+            <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
+              <h3 className="text-xl font-bold font-serif mb-4">Portfolio</h3>
+
+              {/* Cash Balance */}
+              <div className="mb-6 p-4 bg-[#0f1419] border border-[#2a3547] rounded">
+                <div className="text-sm text-gray-400 mb-1 font-sans">Cash Balance</div>
+                <div className="text-2xl font-bold font-serif" style={{ color: '#00C853' }}>
+                  ${balance.toFixed(2)}
+                </div>
+              </div>
+
+              {/* Holdings Table */}
+              <div>
+                <div className="text-sm text-gray-400 mb-3 font-sans">Holdings</div>
+                {/* Table Headers */}
+                <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 text-sm font-sans mb-2 pb-2 border-b border-[#2a3547]">
+                  <div className="font-semibold text-gray-500">Asset</div>
+                  <div className="text-right font-semibold text-gray-500">Price</div>
+                  <div className="text-right font-semibold text-gray-500">Units</div>
+                  <div className="text-right font-semibold text-gray-500">Value</div>
+                  <div className="text-right font-semibold text-gray-500">Actions</div>
+                </div>
+                {/* Table Rows */}
+                <div className="space-y-3">
+                  {Object.entries(holdings).map(([asset, amount]) => {
+                    const price = 50000; // Simplified price
+                    const notionalValue = amount * price;
+                    return (
+                      <div key={asset} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 items-center text-sm font-sans py-2">
+                        <div className="font-bold text-gray-100">{asset}</div>
+                        <div className="text-right text-gray-300 w-24">${price.toLocaleString()}</div>
+                        <div className="text-right text-gray-300 font-mono w-24">{amount.toFixed(4)}</div>
+                        <div className="text-right font-bold w-32" style={{ color: '#d4af37' }}>
+                          ${notionalValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            className="px-3 py-1 text-xs font-sans font-medium transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98]"
+                            style={{ backgroundColor: '#00C853', color: '#ffffff' }}
+                          >
+                            Buy
+                          </button>
+                          <button
+                            className="px-3 py-1 text-xs font-sans font-medium transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98]"
+                            style={{ backgroundColor: '#D32F2F', color: '#ffffff' }}
+                          >
+                            Sell
+                          </button>
+                          <button
+                            className="px-3 py-1 text-xs font-sans font-medium transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98]"
+                            style={{ backgroundColor: '#d4af37', color: '#0f1419' }}
+                          >
+                            Stake
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Total Portfolio Value */}
+                <div className="border-t border-[#2a3547] mt-4 pt-4">
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-400 font-sans">Total Portfolio Value</div>
+                    <div className="text-xl font-bold font-serif" style={{ color: '#00C853' }}>
+                      ${(balance + Object.entries(holdings).reduce((sum, [_, amt]) => sum + (amt * 50000), 0)).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trade Interface - appears when AI triggers it, hidden after first trade */}
+        {uiState.showTrading && !uiState.hasCompletedFirstTrade && (
           <div className="w-full max-w-2xl px-4 mb-8 animate-cardReveal">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
               <h3 className="text-xl font-bold font-serif mb-6">Place Your Trade</h3>
