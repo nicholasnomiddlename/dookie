@@ -13,10 +13,15 @@ if (!apiKey) {
     console.log('Looking for .env.local at:', envPath);
     if (fs.existsSync(envPath)) {
       const envContent = fs.readFileSync(envPath, 'utf-8');
+      console.log('File exists! Content length:', envContent.length);
+      console.log('First 100 chars:', envContent.substring(0, 100));
       const match = envContent.match(/ANTHROPIC_API_KEY=(.+)/);
       if (match) {
         apiKey = match[1].trim();
-        console.log('✓ Loaded API key from .env.local');
+        console.log('✓ Loaded API key from .env.local (length:', apiKey.length, ')');
+      } else {
+        console.log('✗ Could not find ANTHROPIC_API_KEY in file');
+        console.log('Full content:', envContent);
       }
     } else {
       console.log('✗ .env.local file not found at:', envPath);
