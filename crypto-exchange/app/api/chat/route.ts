@@ -1,8 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error('ANTHROPIC_API_KEY is not set in environment variables');
+  console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')));
+}
+
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
 const SYSTEM_PROMPT = `You are a helpful financial assistant for dookie, a modern crypto trading platform. Your role is to guide users through their trading journey in a conversational, friendly way.
@@ -54,6 +59,13 @@ const tools: Anthropic.Tool[] = [
 
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json(
+        { error: 'ANTHROPIC_API_KEY is not configured. Please add it to your .env.local file.' },
+        { status: 500 }
+      );
+    }
+
     const { messages, balance } = await request.json();
 
     // Add balance context to the first user message
