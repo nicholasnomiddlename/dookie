@@ -41,6 +41,7 @@ export default function Home() {
   const [balance, setBalance] = useState(0);
   const [holdings, setHoldings] = useState<{ [key: string]: number }>({});
   const [tradeAmount, setTradeAmount] = useState('');
+  const [fundingLoading, setFundingLoading] = useState(false);
   const [uiState, setUIState] = useState<UIState>({
     showBalance: false,
     showFundingInfo: false,
@@ -169,21 +170,56 @@ export default function Home() {
   };
 
   const handleBuy = () => {
-    if (!uiState.selectedAsset || !tradeAmount) return;
+    const asset = uiState.selectedAsset || 'BTC';
+    if (!tradeAmount) return;
 
     const amount = parseFloat(tradeAmount);
+    const cost = amount * 50000; // Simplified pricing
+
+    if (cost > balance) {
+      alert('Insufficient balance');
+      return;
+    }
+
     setHoldings({
       ...holdings,
-      [uiState.selectedAsset]: (holdings[uiState.selectedAsset] || 0) + amount,
+      [asset]: (holdings[asset] || 0) + amount,
     });
-    setBalance(balance - amount * 50000); // Simplified pricing
+    setBalance(balance - cost);
     setTradeAmount('');
     setUIState((prev) => ({ ...prev, showPortfolio: true }));
+
+    // Add confirmation message
+    setMessages([
+      ...messages,
+      {
+        role: 'assistant' as const,
+        content: `Great! I've placed your order for ${amount} ${asset}. You can see your holdings below.`
+      }
+    ]);
   };
 
-  const handleSimulateFunding = () => {
+  const handleSimulateFunding = async () => {
+    setFundingLoading(true);
+
+    // Simulate 7-second funding process
+    await new Promise(resolve => setTimeout(resolve, 7000));
+
     setBalance(6000);
-    setUIState((prev) => ({ ...prev, showBalance: true }));
+    setFundingLoading(false);
+
+    // Hide funding info and show balance
+    setUIState((prev) => ({ ...prev, showBalance: true, showFundingInfo: false }));
+
+    // Add assistant message about successful funding
+    const newMessages = [
+      ...messages,
+      {
+        role: 'assistant' as const,
+        content: 'Great, looks like your account is funded. Are you ready to make your first trade? Do you know what you want to buy?'
+      }
+    ];
+    setMessages(newMessages);
   };
 
   return (
@@ -317,9 +353,17 @@ export default function Home() {
 
               <button
                 onClick={handleSimulateFunding}
-                className="w-full py-2 px-4 text-sm font-sans font-medium border-2 border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-[#0f1419] transition-all duration-[120ms] ease-in-out active:scale-[0.98]"
+                disabled={fundingLoading}
+                className="w-full py-2 px-4 text-sm font-sans font-medium border-2 border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-[#0f1419] transition-all duration-[120ms] ease-in-out active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#d4af37]"
               >
-                Simulate Funding ($6,000)
+                {fundingLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="animate-infinity-spin" style={{ color: '#d4af37', fontSize: '20px' }}>∞</span>
+                    <span>Processing...</span>
+                  </span>
+                ) : (
+                  'Simulate Funding ($6,000)'
+                )}
               </button>
             </div>
           </div>
@@ -338,13 +382,39 @@ export default function Home() {
         )}
 
         {/* Trade Interface - appears when AI triggers it */}
-        {uiState.showTrading && uiState.selectedAsset && (
+        {uiState.showTrading && (
           <div className="w-full max-w-2xl px-4 mb-8 animate-cardReveal">
             <div className="bg-[#1a2332] rounded-lg border border-[#2a3547] p-6 shadow-lg">
-              <h3 className="text-xl font-bold font-serif mb-4">Trade {uiState.selectedAsset}</h3>
+              <h3 className="text-xl font-bold font-serif mb-6">Place Your Trade</h3>
+
+              {/* Asset Selector */}
               <div className="mb-4">
                 <label className="block text-sm font-sans font-medium mb-2 text-gray-300">
-                  Amount
+                  Select Asset
+                </label>
+                <select
+                  value={uiState.selectedAsset || 'BTC'}
+                  onChange={(e) => setUIState((prev) => ({ ...prev, selectedAsset: e.target.value }))}
+                  className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-sans transition-all duration-[120ms] ease-in-out focus:border-[#d4af37]"
+                >
+                  <option value="BTC">Bitcoin (BTC)</option>
+                  <option value="ETH">Ethereum (ETH)</option>
+                  <option value="SOL">Solana (SOL)</option>
+                </select>
+              </div>
+
+              {/* Current Price Display */}
+              <div className="mb-4 p-3 bg-[#0f1419] border border-[#2a3547] rounded">
+                <div className="text-sm text-gray-400 font-sans mb-1">Current Price</div>
+                <div className="text-2xl font-bold font-mono" style={{ color: '#d4af37' }}>
+                  $50,000.00
+                </div>
+              </div>
+
+              {/* Amount Input */}
+              <div className="mb-4">
+                <label className="block text-sm font-sans font-medium mb-2 text-gray-300">
+                  Amount to Buy
                 </label>
                 <input
                   type="number"
@@ -354,14 +424,21 @@ export default function Home() {
                   placeholder="0.00"
                   className="w-full bg-[#0f1419] border-2 border-[#2a3547] rounded px-4 py-3 focus:outline-none text-gray-100 font-mono transition-all duration-[120ms] ease-in-out focus:border-[#d4af37]"
                 />
+                {tradeAmount && (
+                  <div className="mt-2 text-sm text-gray-400 font-sans">
+                    Total Cost: ${(parseFloat(tradeAmount) * 50000).toFixed(2)}
+                  </div>
+                )}
               </div>
+
+              {/* Buy Button */}
               <button
                 onClick={handleBuy}
-                disabled={!tradeAmount}
+                disabled={!tradeAmount || parseFloat(tradeAmount) <= 0}
                 className="w-full py-3 font-sans font-bold transition-all duration-[120ms] ease-in-out hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
                 style={{ backgroundColor: '#00C853', color: '#ffffff' }}
               >
-                Buy {uiState.selectedAsset}
+                Buy {uiState.selectedAsset || 'BTC'}
               </button>
             </div>
           </div>
